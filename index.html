@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="cents">
+  <!-- The head section provides metadata and links the stylesheet for the app shell. -->
+  <head>
+    <!-- Character encoding ensures text renders consistently across browsers. -->
+    <meta charset="UTF-8" />
+    <!-- Responsive viewport allows clean layout behavior on desktop and mobile widths. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Page title appears in the browser tab for this AngularJS MVC demo. -->
+    <title>Cents</title>
+    <!-- Load IBM Plex Sans for the app's primary typography. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap provides a standardized layout system and component style patterns. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/css/bootstrap.min.css" />
+    <!-- Main stylesheet defines layout, tab visuals, typography, and footer behavior. -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <!-- The body binds a shared navigation controller for menu state and footer metadata. -->
+  <body ng-controller="NavigationController as nav" class="bg-body-tertiary">
+    <!-- App shell keeps a persistent header, nav menu, routed content, and sticky footer. -->
+    <div class="app-shell container py-3 py-md-4">
+      <div class="row mb-3">
+        <!-- Header introduces the purpose of this simple six-page AngularJS example. -->
+        <header class="col-12 col-md-12 col-lg-12 site-header rounded-4 shadow-sm">
+          <!-- Main heading labels the demo application. -->
+          <h1>Cents</h1>
+          <!-- Subheading introduces finance-first workflows inspired by enterprise spend tooling. -->
+          <p>Accounting-first operations for spend, AP, purchasing, approvals, and financial reporting.</p>
+        </header>
+      </div>
+
+      <div class="row mb-3">
+        <!-- Bootstrap nav menu renders nested links from model data and highlights active routes. -->
+        <nav class="col-12 col-md-12 col-lg-12 site-nav navbar navbar-expand-lg" aria-label="Primary navigation menu">
+          <div class="container-fluid px-0">
+            <button
+              class="navbar-toggler"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#primaryNavMenu"
+              aria-controls="primaryNavMenu"
+              aria-expanded="false"
+              aria-label="Toggle navigation"
+            >
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="primaryNavMenu">
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- Top-level menu items can be direct links or dropdown containers. -->
+                <li class="nav-item" ng-repeat="item in nav.menu" ng-class="{ dropdown: item.children && item.children.length }">
+                  <a
+                    ng-if="!item.children || !item.children.length"
+                    class="nav-link"
+                    ng-href="#!{{ item.path }}"
+                    ng-class="{ 'active': nav.isActive(item.path) }"
+                    ng-attr-aria-current="{{ nav.isActive(item.path) ? 'page' : undefined }}"
+                  >
+                    {{ item.label }}
+                  </a>
+
+                  <a
+                    ng-if="item.children && item.children.length"
+                    class="nav-link dropdown-toggle"
+                    href=""
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    ng-class="{ 'active': nav.hasActiveChild(item) }"
+                    ng-click="$event.preventDefault()"
+                  >
+                    {{ item.label }}
+                  </a>
+
+                  <ul class="dropdown-menu" ng-if="item.children && item.children.length">
+                    <!-- Second-level dropdown items can also contain third-level menus. -->
+                    <li ng-repeat="child in item.children" ng-class="{ 'dropdown-submenu': child.children && child.children.length }">
+                      <a
+                        ng-if="!child.children || !child.children.length"
+                        class="dropdown-item"
+                        ng-href="#!{{ child.path }}"
+                        ng-class="{ 'active': nav.isActive(child.path) }"
+                      >
+                        {{ child.label }}
+                      </a>
+
+                      <a
+                        ng-if="child.children && child.children.length"
+                        class="dropdown-item dropdown-toggle"
+                        href=""
+                        ng-click="$event.preventDefault()"
+                        ng-class="{ 'active': nav.hasActiveChild(child) }"
+                      >
+                        {{ child.label }}
+                      </a>
+
+                      <ul class="dropdown-menu" ng-if="child.children && child.children.length">
+                        <!-- Third-level links provide deeper navigation examples. -->
+                        <li ng-repeat="grandchild in child.children">
+                          <a
+                            class="dropdown-item"
+                            ng-href="#!{{ grandchild.path }}"
+                            ng-class="{ 'active': nav.isActive(grandchild.path) }"
+                          >
+                            {{ grandchild.label }}
+                          </a>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <div class="row flex-grow-1 mb-3">
+        <!-- ng-view hosts the active route content while header/footer remain persistent. -->
+        <main class="col-12 col-md-12 col-lg-12 content-area" ng-view aria-live="polite"></main>
+      </div>
+
+      <div class="row mb-3">
+        <!-- Quote band remains visible across all routes above the footer. -->
+        <aside class="col-12 col-md-12 col-lg-12 quote-band">
+          <blockquote class="mb-0">
+            <p class="mb-2">"{{ nav.randomQuote }}"</p>
+            <footer class="blockquote-footer mb-0">Sam Kinison</footer>
+          </blockquote>
+        </aside>
+      </div>
+
+      <div class="row mt-auto">
+        <!-- Persistent footer remains at the bottom on every route page. -->
+        <footer class="col-12 col-md-12 col-lg-12 site-footer rounded-4">
+          <!-- Footer text uses controller-provided year and short app description. -->
+          <p>&copy; {{ nav.currentYear }} Cents | Persistent footer across all pages</p>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Shared route template displays the selected page title, description, and bullets. -->
+    <script type="text/ng-template" id="page-template.html">
+      <!-- Section wrapper provides consistent styling for each route's content panel. -->
+      <article class="page-section card border-0 shadow-sm">
+        <div class="card-body">
+          <!-- Breadcrumbs appear for all non-home pages using menu-derived trail metadata. -->
+          <nav
+            class="mb-3"
+            aria-label="Breadcrumb"
+            ng-if="!page.activePage.isHome && page.activePage.breadcrumbs && page.activePage.breadcrumbs.length"
+          >
+            <ol class="breadcrumb mb-0">
+              <li
+                class="breadcrumb-item"
+                ng-repeat="crumb in page.activePage.breadcrumbs track by $index"
+                ng-class="{ 'active': $last }"
+                ng-attr-aria-current="{{ $last ? 'page' : undefined }}"
+              >
+                <a ng-if="!$last && crumb.path" ng-href="#!{{ crumb.path }}">{{ crumb.label }}</a>
+                <span ng-if="$last || !crumb.path">{{ crumb.label }}</span>
+              </li>
+            </ol>
+          </nav>
+
+          <!-- Semantic article header holds title, intro, and publication metadata. -->
+          <header class="semantic-header mb-3">
+            <h2 class="h4 mb-2">{{ page.activePage.title }}</h2>
+            <p class="mb-2">{{ page.activePage.description }}</p>
+            <p class="text-body-secondary small mb-0">
+              <time ng-attr-datetime="{{ page.activePage.published.iso }}">{{ page.activePage.published.human }}</time>
+              <span class="mx-1">&middot;</span>
+              <span>{{ page.activePage.wordCount }} words</span>
+              <span class="mx-1">&middot;</span>
+              <span>about {{ page.activePage.readingMinutes }} minute read</span>
+              <span class="mx-1">&middot;</span>
+              <span>finance workspace <abbr title="HyperText Markup Language">HTML</abbr> view</span>
+            </p>
+          </header>
+
+          <!-- Search dashboard appears on configured finance pages with filter form and paginated table. -->
+          <section class="search-dashboard rounded-3 p-3 mb-4" ng-if="page.searchUi">
+            <header class="mb-3">
+              <h3 class="h6 text-uppercase text-body-secondary mb-1">{{ page.activePage.searchView.title }}</h3>
+              <p class="mb-0 small text-body-secondary">{{ page.activePage.searchView.subtitle }}</p>
+            </header>
+
+            <form class="row g-2 align-items-end" ng-submit="$event.preventDefault(); page.applySearch();">
+              <div class="col-12 col-lg-4">
+                <label class="form-label mb-1" for="searchQuery">Search Documents or People</label>
+                <input
+                  id="searchQuery"
+                  class="form-control"
+                  type="search"
+                  ng-model="page.searchUi.filters.query"
+                  placeholder="ID, title, owner, vendor, notes"
+                  ng-change="page.applySearch()"
+                />
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchType">Type</label>
+                <select
+                  id="searchType"
+                  class="form-select"
+                  ng-model="page.searchUi.filters.type"
+                  ng-options="option for option in page.searchUi.typeOptions"
+                  ng-change="page.applySearch()"
+                ></select>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchStatus">Status</label>
+                <select
+                  id="searchStatus"
+                  class="form-select"
+                  ng-model="page.searchUi.filters.status"
+                  ng-options="option for option in page.searchUi.statusOptions"
+                  ng-change="page.applySearch()"
+                ></select>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchDepartment">Department</label>
+                <select
+                  id="searchDepartment"
+                  class="form-select"
+                  ng-model="page.searchUi.filters.department"
+                  ng-options="option for option in page.searchUi.departmentOptions"
+                  ng-change="page.applySearch()"
+                ></select>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchOwner">Owner</label>
+                <select
+                  id="searchOwner"
+                  class="form-select"
+                  ng-model="page.searchUi.filters.owner"
+                  ng-options="option for option in page.searchUi.ownerOptions"
+                  ng-change="page.applySearch()"
+                ></select>
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchFromDate">From</label>
+                <input
+                  id="searchFromDate"
+                  class="form-control"
+                  type="date"
+                  ng-model="page.searchUi.filters.fromDate"
+                  ng-change="page.applySearch()"
+                />
+              </div>
+
+              <div class="col-6 col-md-4 col-lg-2">
+                <label class="form-label mb-1" for="searchToDate">To</label>
+                <input
+                  id="searchToDate"
+                  class="form-control"
+                  type="date"
+                  ng-model="page.searchUi.filters.toDate"
+                  ng-change="page.applySearch()"
+                />
+              </div>
+
+              <div class="col-12 col-lg-4 d-flex gap-2 justify-content-lg-end">
+                <button type="button" class="btn btn-primary" ng-click="page.applySearch()">Apply Filters</button>
+                <button type="button" class="btn btn-outline-secondary" ng-click="page.clearSearchFilters()">Clear</button>
+              </div>
+            </form>
+
+            <div class="search-meta d-flex flex-wrap justify-content-between align-items-center mt-3 mb-2">
+              <p class="mb-1 mb-md-0 small">
+                Showing {{ page.searchUi.displayStart }}-{{ page.searchUi.displayEnd }} of {{ page.searchUi.totalResults }}
+                records
+              </p>
+              <p class="mb-0 small text-body-secondary">Scope: {{ page.activePage.searchView.allowedTypes.join(', ') }}</p>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle search-table mb-2" ng-if="page.searchUi.pagedResults.length">
+                <thead>
+                  <tr>
+                    <th scope="col">Record</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Owner</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" class="text-end">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="record in page.searchUi.pagedResults track by record.recordId">
+                    <th scope="row">{{ record.recordId }}</th>
+                    <td>{{ record.type }}</td>
+                    <td>
+                      <div class="fw-semibold">{{ record.title }}</div>
+                      <div class="small text-body-secondary">{{ record.party }} | {{ record.reference }}</div>
+                    </td>
+                    <td>{{ record.owner }}</td>
+                    <td>{{ record.department }}</td>
+                    <td>{{ record.status }}</td>
+                    <td>{{ record.date }}</td>
+                    <td class="text-end">
+                      <span ng-if="record.amount">{{ record.currency }} {{ record.amount | number:2 }}</span>
+                      <span ng-if="!record.amount">-</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class="search-empty mb-2" ng-if="!page.searchUi.pagedResults.length">
+              No records match the active filters. Try broadening your search criteria.
+            </p>
+
+            <nav aria-label="Search results pages" ng-if="page.searchUi.totalPages > 1">
+              <ul class="pagination pagination-sm justify-content-end flex-wrap mb-0">
+                <li class="page-item" ng-class="{ disabled: page.searchUi.page === 1 }">
+                  <a class="page-link" href="" ng-click="$event.preventDefault(); page.previousSearchPage()">Previous</a>
+                </li>
+                <li
+                  class="page-item"
+                  ng-repeat="pageNumber in page.searchUi.pageNumbers track by pageNumber"
+                  ng-class="{ active: pageNumber === page.searchUi.page }"
+                >
+                  <a class="page-link" href="" ng-click="$event.preventDefault(); page.setSearchPage(pageNumber)">
+                    {{ pageNumber }}
+                  </a>
+                </li>
+                <li class="page-item" ng-class="{ disabled: page.searchUi.page === page.searchUi.totalPages }">
+                  <a class="page-link" href="" ng-click="$event.preventDefault(); page.nextSearchPage()">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </section>
+
+          <!-- Highlights section demonstrates list semantics for concise content. -->
+          <section class="mb-3" ng-attr-aria-labelledby="{{ page.activePage.highlightsId }}">
+            <h3 class="h6 text-uppercase text-body-secondary mb-2" ng-attr-id="{{ page.activePage.highlightsId }}">Highlights</h3>
+            <ul class="mb-0">
+              <li ng-repeat="point in page.activePage.bullets">{{ point }}</li>
+            </ul>
+          </section>
+
+          <!-- Body section presents substantial lorem ipsum text on every page. -->
+          <section class="mb-3" ng-attr-aria-labelledby="{{ page.activePage.bodyId }}">
+            <h3 class="h6 text-uppercase text-body-secondary mb-2" ng-attr-id="{{ page.activePage.bodyId }}">Long-form Content</h3>
+            <p ng-repeat="paragraph in page.activePage.loremIpsum track by $index">{{ paragraph }}</p>
+            <p class="mb-0">
+              <mark>Semantic inline examples:</mark>
+              <strong>{{ page.activePage.label }}</strong> includes <em>contextual emphasis</em>,
+              inline <code>ng-repeat</code> usage, keyboard hint <kbd>Ctrl</kbd> + <kbd>R</kbd>, and output sample
+              <samp>200 OK</samp>.
+            </p>
+          </section>
+
+          <!-- Figure and figcaption demonstrate citation-style semantic content. -->
+          <figure class="semantic-figure p-3 rounded-3 mb-3">
+            <blockquote class="blockquote mb-2">
+              <p class="mb-0">Lorem ipsum passages remain a practical placeholder for layout rhythm and readability checks.</p>
+            </blockquote>
+            <figcaption class="blockquote-footer mb-0">
+              Derived from <cite title="De Finibus Bonorum et Malorum">classic lorem ipsum source text</cite>
+            </figcaption>
+          </figure>
+
+          <!-- Aside provides supplemental information adjacent to the main narrative. -->
+          <aside class="semantic-aside rounded-3 p-3 mb-3">
+            <h3 class="h6 text-uppercase text-body-secondary mb-2">Related Aside</h3>
+            <p class="mb-2">
+              This sidebar complements the article with supporting context and shows how ancillary content can sit near
+              the primary narrative without interrupting it.
+            </p>
+            <dl class="mb-0">
+              <dt class="fw-semibold">Primary Topic</dt>
+              <dd>{{ page.activePage.label }}</dd>
+              <dt class="fw-semibold">Template Pattern</dt>
+              <dd>Shared route view with semantic landmarks and structured metadata.</dd>
+            </dl>
+          </aside>
+
+          <!-- Details and summary allow optional semantic content disclosure. -->
+          <details class="semantic-details">
+            <summary class="fw-semibold">Semantic Elements Used In This Page</summary>
+            <p class="mt-2 mb-0">
+              This view demonstrates article, header, nav, section, figure, figcaption, aside, details, summary, time,
+              mark, abbr, code, kbd, samp, cite, and footer elements.
+            </p>
+          </details>
+
+          <!-- Semantic footer and address complete the article structure. -->
+          <footer class="semantic-footer mt-3 pt-3 border-top">
+            <address class="mb-0">Demo Editorial Desk, 123 Example Avenue, Sample City</address>
+          </footer>
+        </div>
+      </article>
+    </script>
+
+    <!-- AngularJS core library provides module, controller, and data binding primitives. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+    <!-- AngularJS ngRoute library enables client-side hash route registration and views. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-route.min.js"></script>
+    <!-- Bootstrap bundle enables optional interactive components and behavior. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@latest/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Application script defines the model, route config, and controllers. -->
+    <script src="app.js"></script>
+  </body>
+</html>
